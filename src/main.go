@@ -48,8 +48,10 @@ Calculate the levenshtein distance matrix
 	*	maxI, maxJ: coordinates of the highest score in the distMat (axis 0, axis 1)
 */
 func fMatrix(str1, str2 string, gapP, mismatchP, match int) ([][]int, int, int) {
-	s1_len := len(str1) + 1
-	s2_len := len(str2) + 1
+	str1Slice := []rune(str1)
+	str2Slice := []rune(str2)
+	s1_len := len(str1Slice) + 1
+	s2_len := len(str2Slice) + 1
 
 	if s1_len == 0 {
 		return [][]int{{len(str2)}}, 0, 0
@@ -67,8 +69,6 @@ func fMatrix(str1, str2 string, gapP, mismatchP, match int) ([][]int, int, int) 
 	maxI := 0
 	maxJ := 0
 	// fill distance matrix
-	str1Slice := []rune(str1)
-	str2Slice := []rune(str2)
 	for i := 1; i < s1_len; i++ {
 		for j := 1; j < s2_len; j++ {
 			// only pay mismatchP if it's a mismatch
@@ -191,9 +191,11 @@ func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color str
 
 	if quality >= qualityCutOff {
 		// search for aligned section in the search string
-		a2RePat := strings.ReplaceAll(string(inAlgn2), "-", "-*")
+		a2RePat := strings.ReplaceAll(string(inAlgn2), "-", "*-?")
 		m := regexp.MustCompile(a2RePat)
 		allInd := m.FindAllSubmatchIndex([]byte(searchString), -1)
+		// number of all matches
+		numInds := len(allInd)
 		// color all aligned sections
 		var sb strings.Builder
 		lastPrintInd := 0
@@ -205,6 +207,12 @@ func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color str
 			sb.WriteString(cMap[color])
 			sb.WriteString(searchString[i[0]:i[1]])
 			sb.WriteString(cMap["reset"])
+			// if there is a string between the current and the next match
+			if ci < numInds-1 {
+				if allInd[ci+1][0]-i[1] > 0 {
+					sb.WriteString(searchString[i[1]:allInd[ci+1][0]])
+				}
+			}
 			lastPrintInd = i[1]
 		}
 		sb.WriteString(searchString[lastPrintInd:])
@@ -291,9 +299,9 @@ func main() {
 	argparse()
 	/*
 		// the pattern to search for
-		pattern := "pakcage mian xss"
+		pattern := "pakcage"
 		// where to search
-		target := "xxxpackage-main"
+		target := "xxxpackage-main blabla package"
 		// target = "TGTTACGG"
 		// pattern = "GGTTGACTA"
 		gapPenalty := -2

@@ -1,6 +1,6 @@
 # GOLAF
 
-****GO** **L**ocal **A**lignment **F**uzzy finder**
+***GO** **L**ocal **A**lignment **F**uzzy finder**
 
 Fuzzy finder using [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) for finding matches. Can be used for words and DNA/Protein sequences.
 

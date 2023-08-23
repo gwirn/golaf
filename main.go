@@ -1,15 +1,21 @@
 package main
 
 import (
-	_ "bufio"
-	_ "flag"
+	"bufio"
+	"flag"
 	"fmt"
-	_ "os"
-	// "strings"
+	"log"
+	"os"
+	"regexp"
+	"strings"
 )
 
 /*
 Get the color codes for terminal output
+
+	:parameter
+	:return
+	*	colorMap: map that returns the terminal escape sequences to color strings
 */
 func getColorMap() map[string]string {
 	colorMap := make(map[string]string)
@@ -30,16 +36,26 @@ func getColorMap() map[string]string {
 
 /*
 Calculate the levenshtein distance matrix
+
+	:parameter
+	*	str1: pattern to search for
+	*	str2: string to search in
+	*	gapP: gap penalty
+	*	mismatchP: mismatch penalty
+	*	match: score for a match
+	:return
+	*	distMat: distance matrix between the strings
+	*	maxI, maxJ: coordinates of the highest score in the distMat (axis 0, axis 1)
 */
-func fMatrix(str1, str2 string, gapP, mismatchP, match int) ([][]int, int, int, int) {
+func fMatrix(str1, str2 string, gapP, mismatchP, match int) ([][]int, int, int) {
 	s1_len := len(str1) + 1
 	s2_len := len(str2) + 1
 
 	if s1_len == 0 {
-		return [][]int{{len(str2)}}, 0, 0, 0
+		return [][]int{{len(str2)}}, 0, 0
 	}
 	if s2_len == 0 {
-		return [][]int{{len(str1)}}, 0, 0, 0
+		return [][]int{{len(str1)}}, 0, 0
 	}
 	// create and pre fill the distance matrix
 	distMat := make([][]int, 0, s1_len)
@@ -85,14 +101,27 @@ func fMatrix(str1, str2 string, gapP, mismatchP, match int) ([][]int, int, int, 
 			}
 		}
 	}
-	return distMat, maxScore, maxI, maxJ
+	return distMat, maxI, maxJ
 }
 
 /*
 Trace back the path thorough the distance matrix recursively
+
+	:parameters
+	*	btDistMat: distance matrix to trace back the alignment
+	*	s1: pattern to search for
+	*	s2: string to search in
+	*	algn1: storage slice for alignment of pattern to searchString
+	*	algn2: storage slice for alignment of searchString to pattern
+	*	i, j: coordinates of the highest score in the matrix
+	*	gapP: gap penalty
+	*	mismatchP: mismatch penalty
+	*	match: score for a match
+	:return
+	* algn1, algn2: the filled alignments
 */
 func backtrace(btDistMat [][]int, s1, s2, algn1, algn2 []rune, i, j, gapP, mismatchP, match int) ([]rune, []rune) {
-	if btDistMat[i][j] > 0{
+	if btDistMat[i][j] > 0 {
 		cost := mismatchP
 		if s1[i-1] == s2[j-1] {
 			cost = match
@@ -118,24 +147,160 @@ func backtrace(btDistMat [][]int, s1, s2, algn1, algn2 []rune, i, j, gapP, misma
 }
 
 /*
-Compare the search results an print them in colors depending on what was found
+Reverse a slice containing runes in place
+
+	:parameter
+	*	inSlice: slice that should be reversed
+	:return
 */
-
-func main() {
-	// the pattern to search for
-	pattern := "The quick brown fox jumps over the lazy dog"
-	// where to search
-	target := "A furry brown fox in the box"
-	target = "TGTTACGG"
-	pattern = "GGTTGACTA"
-	gapPenalty := -2
-	fm, mS, mI, mJ := fMatrix(pattern, target, gapPenalty, -3, 3)
-	for _, i := range fm {
-		fmt.Println(i)
+func reverseRune(inSlice []rune) {
+	n := len(inSlice)
+	for i := 0; i < n/2; i++ {
+		inSlice[i], inSlice[n-1-i] = inSlice[n-1-i], inSlice[i]
 	}
-	a1, a2 := backtrace(fm, []rune(pattern), []rune(target), []rune{}, []rune{}, mI, mJ, gapPenalty,-3,3)
-	fmt.Println(mS, mI, mJ)
-	fmt.Println(string(a1))
-	fmt.Println(string(a2))
+}
 
+/*
+Compare the search results an print them in colors depending on what was found
+
+	:parameter
+	*	pattern: pattern to search for
+	*	searchString: string to search in
+	*	inAlgn1: alignment of pattern to searchString
+	*	inAlgn2: alignment of searchString to pattern
+	*	colorize: name of the color in getColorMap to highlight search results
+	*	qualityCutOff: percentage of word needs to be found to count as a match
+	:return
+*/
+func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color string, qualityCutOff float32) {
+	cMap := getColorMap()
+	_, ok := cMap[color]
+	if !ok {
+		log.Fatal("Invalif color choice:", color)
+	}
+	// number of gap runes in the original search pattern
+	numGapRunePattern := float32(strings.Count(pattern, "-"))
+	// length of the alignment
+	lenMatch := float32(len(inAlgn2))
+	// number of insertions into the pattern in the alignment
+	numIns := float32(strings.Count(string(inAlgn1), "-"))
+	// length of the not aligned pattern
+	lenPattern := float32(len(pattern))
+	// quality of the match
+	quality := (lenMatch - (numIns - numGapRunePattern)) / (lenPattern - numGapRunePattern)
+
+	if quality >= qualityCutOff {
+		// search for aligned section in the search string
+		a2RePat := strings.ReplaceAll(string(inAlgn2), "-", "-*")
+		m := regexp.MustCompile(a2RePat)
+		allInd := m.FindAllSubmatchIndex([]byte(searchString), -1)
+		// color all aligned sections
+		var sb strings.Builder
+		lastPrintInd := 0
+		for ci, i := range allInd {
+			if ci == 0 && i[0] > 0 {
+				sb.WriteString(searchString[:i[0]])
+			}
+			sb.WriteString(cMap["bold"])
+			sb.WriteString(cMap[color])
+			sb.WriteString(searchString[i[0]:i[1]])
+			sb.WriteString(cMap["reset"])
+			lastPrintInd = i[1]
+		}
+		sb.WriteString(searchString[lastPrintInd:])
+		fmt.Println(sb.String())
+	}
+}
+
+/*
+Parse command line arguments and execute search over files or stdin
+
+	:parameters
+	:return
+*/
+func argparse() {
+	// optional arguments
+	// gap penalty
+	gapPenaltyPtr := flag.Int("gapp", -2, "gap penalty [NEGATIVE]")
+	// mismatch penalty
+	mmPenaltyPtr := flag.Int("mmp", -3, "missmatch penalty [NEGATIVE]")
+	// match bonus
+	matchBonusPtr := flag.Int("match", 3, "score for a match [POSITIVE]")
+	// minimum required quality to count as a match
+	qualityCutOffPtr := flag.Int("quality", 60, "percentage of the pattern that have to macht to be seen as match")
+	// whether to color the output
+	colorPtr := flag.String("color", "green", "true to get colored the output - options: [ red green yellow blue purple cyan white ]")
+	flag.Parse()
+	quality := float32(*qualityCutOffPtr) / float32(100)
+	// number of optional args
+	numFalgsPassed := 0
+	flag.Visit(func(f *flag.Flag) {
+		numFalgsPassed++
+	})
+	numArgs := len(os.Args)
+	if numArgs == 1 {
+		fmt.Fprintf(os.Stderr, "No arguments supplied\n")
+		os.Exit(1)
+	}
+
+	// where positional args start
+	numArgSkip := (numFalgsPassed * 2) + 1
+	// the pattern to search for
+	searchPattern := os.Args[numArgSkip]
+	// the files in which the search should be performed
+	files := os.Args[numArgSkip+1:]
+
+	// read from stdin
+	if len(files) == 0 {
+		buf := bufio.NewScanner(os.Stdin)
+		for buf.Scan() {
+			line := buf.Text()
+			fm, mI, mJ := fMatrix(searchPattern, line, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
+			ag1, ag2 := backtrace(fm, []rune(searchPattern), []rune(line), []rune{}, []rune{}, mI, mJ, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
+			reverseRune(ag1)
+			reverseRune(ag2)
+			showSearch(searchPattern, line, ag1, ag2, *colorPtr, float32(quality))
+		}
+		// read from file(s)
+	} else {
+		for _, filepath := range files {
+			fmt.Println(filepath)
+			file, err := os.Open(filepath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Can't open file %s\n", filepath)
+				os.Exit(1)
+			}
+			defer file.Close()
+
+			buf := bufio.NewScanner(file)
+			for {
+				if !buf.Scan() {
+					break
+				}
+				line := buf.Text()
+				fm, mI, mJ := fMatrix(searchPattern, line, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
+				ag1, ag2 := backtrace(fm, []rune(searchPattern), []rune(line), []rune{}, []rune{}, mI, mJ, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
+				reverseRune(ag1)
+				reverseRune(ag2)
+				showSearch(searchPattern, line, ag1, ag2, *colorPtr, float32(quality))
+			}
+		}
+	}
+}
+func main() {
+	argparse()
+	/*
+		// the pattern to search for
+		pattern := "pakcage mian xss"
+		// where to search
+		target := "xxxpackage-main"
+		// target = "TGTTACGG"
+		// pattern = "GGTTGACTA"
+		gapPenalty := -2
+		fm, mI, mJ := fMatrix(pattern, target, gapPenalty, -3, 3)
+		a1, a2 := backtrace(fm, []rune(pattern), []rune(target), []rune{}, []rune{}, mI, mJ, gapPenalty, -3, 3)
+		reverseRune(a1)
+		reverseRune(a2)
+		showSearch(pattern, target, a1, a2, "green", 0.6)
+	*/
 }

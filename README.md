@@ -4,6 +4,8 @@
 
 Fuzzy finder using [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) for finding matches. Can be used for words and DNA/Protein sequences.
 
+![TEST](https://github.com/gwirn/golaf/actions/workflows/go.yml/badge.svg)
+
 ## Setup
 
 Make sure go is [installed](https://go.dev/doc/install)

@@ -235,7 +235,7 @@ func argparse() {
 	// match bonus
 	matchBonusPtr := flag.Int("match", 3, "score for a match [POSITIVE]")
 	// minimum required quality to count as a match
-	qualityCutOffPtr := flag.Int("quality", 60, "percentage of the pattern that have to macht to be seen as match")
+	qualityCutOffPtr := flag.Int("quality", 75, "percentage of the pattern that have to macht to be seen as match")
 	// whether to color the output
 	colorPtr := flag.String("color", "green", "true to get colored the output - options: [ red green yellow blue purple cyan white ]")
 	flag.Parse()

@@ -2,14 +2,9 @@
 
 ***GO** **L**ocal **A**lignment **F**uzzy finder*
 
-<<<<<<< Updated upstream
-Fuzzy finder using [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) for finding matches.
-=======
 Fuzzy word/text finder using [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) for finding matches.
 
 ![alt text](https://github.com/gwirn/golaf/blob/master/screenshot/golaf.png?raw=true)
-
->>>>>>> Stashed changes
 
 ![TEST](https://github.com/gwirn/golaf/actions/workflows/go.yml/badge.svg)
 <a title="Code Size" target="_blank" href="https://github.com/gwirn/golaf"><img src="https://img.shields.io/github/languages/code-size/gwirn/golaf"></a>

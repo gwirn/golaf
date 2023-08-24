@@ -41,3 +41,17 @@ if [[ ! $(cat ../testFiles/testFile1.txt | go run main.go line | grep line | wc 
 else
     echo "PASS: Pattern matching for input from StdIn "
 fi
+
+if [[ ! $(go run main.go wold ../testFiles/* | grep world | wc -l) -eq 6 ]];then
+    echo "FAILED: Reduced 'world' -> 'wold'"
+    exit 1
+else
+    echo "PASS: Reduced 'world' -> 'wold'"
+fi 
+
+if [[ ! $(go run main.go wod ../testFiles/* | grep world | wc -l) -eq 0 && ! $(go run main.go wod ../testFiles/* | wc -l) -eq 0 ]];then
+    echo "FAILED: Reduced 'world' -> 'wold'"
+    exit 1
+else
+    echo "PASS: Reduced 'world' -> 'wod'"
+fi

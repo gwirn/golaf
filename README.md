@@ -4,10 +4,11 @@
 
 Fuzzy word/text finder using [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) for finding matches.
 
-![alt text](https://github.com/gwirn/golaf/blob/master/screenshot/golaf.png?raw=true)
-
 ![TEST](https://github.com/gwirn/golaf/actions/workflows/go.yml/badge.svg)
 <a title="Code Size" target="_blank" href="https://github.com/gwirn/golaf"><img src="https://img.shields.io/github/languages/code-size/gwirn/golaf"></a>
+
+
+https://github.com/gwirn/golaf/assets/71886945/6def3831-e0d2-4ae2-9c5e-49b57af5c4d3
 
 ## Setup
 

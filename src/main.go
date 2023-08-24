@@ -237,7 +237,7 @@ func argparse() {
 	// minimum required quality to count as a match
 	qualityCutOffPtr := flag.Int("quality", 75, "percentage of the pattern that have to macht to be seen as match")
 	// whether to color the output
-	colorPtr := flag.String("color", "green", "true to get colored the output - options: [ red green yellow blue purple cyan white ]")
+	colorPtr := flag.String("color", "green", "color option for highlighting the found results- options: [ red green yellow blue purple cyan white ]")
 	flag.Parse()
 	quality := float32(*qualityCutOffPtr) / float32(100)
 	// number of optional args

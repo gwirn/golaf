@@ -35,6 +35,20 @@ func getColorMap() map[string]string {
 }
 
 /*
+Reverse a slice containing runes in place
+
+	:parameter
+	*	inSlice: slice that should be reversed
+	:return
+*/
+func reverseRune(inSlice []rune) {
+	n := len(inSlice)
+	for i := 0; i < n/2; i++ {
+		inSlice[i], inSlice[n-1-i] = inSlice[n-1-i], inSlice[i]
+	}
+}
+
+/*
 Calculate the levenshtein distance matrix
 
 	:parameter
@@ -147,20 +161,6 @@ func backtrace(btDistMat [][]int, s1, s2, algn1, algn2 []rune, i, j, gapP, misma
 }
 
 /*
-Reverse a slice containing runes in place
-
-	:parameter
-	*	inSlice: slice that should be reversed
-	:return
-*/
-func reverseRune(inSlice []rune) {
-	n := len(inSlice)
-	for i := 0; i < n/2; i++ {
-		inSlice[i], inSlice[n-1-i] = inSlice[n-1-i], inSlice[i]
-	}
-}
-
-/*
 Compare the search results an print them in colors depending on what was found
 
 	:parameter
@@ -257,7 +257,6 @@ func argparse() {
 	searchPattern := os.Args[numArgSkip]
 	// the files in which the search should be performed
 	files := os.Args[numArgSkip+1:]
-
 	// read from stdin
 	if len(files) == 0 {
 		buf := bufio.NewScanner(os.Stdin)
@@ -271,8 +270,10 @@ func argparse() {
 		}
 		// read from file(s)
 	} else {
+		// colormap for terminal output
+		cMap := getColorMap()
 		for _, filepath := range files {
-			fmt.Println(filepath)
+			fmt.Printf("%s%s%s%s%s\n", cMap["bold"], cMap["italic"], cMap["red"], filepath, cMap["reset"])
 			file, err := os.Open(filepath)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Can't open file %s\n", filepath)

@@ -16,11 +16,15 @@ go build
 mv src golaf
 ```
 
+On unix systems you can either do `mv golaf /usr/bin` or run `echo 'alias golaf="/PATH/TO/GOLAF"' >> ~/.bashrc` (or `~/.zshrc` depending on your shell).
+
+To run it use it with `golaf [PATTERN] [FILE]`.
+
 ## Usage
 
-Basic search can be done with `golaf testPattern testfile.txt`
+Basic search can be done with `golaf [PATTERN] [FILE]`
 
-The search can also be performed reading from StdIn with e.g. `cat testfile.txt | golaf testPattern`
+The search can also be performed reading from StdIn with e.g. `cat testfile.txt | golaf [PATTERN]`
 
 ### Possible optional argument
 

@@ -5,6 +5,7 @@
 Fuzzy word/text finder using [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) for finding matches.
 
 ![TEST](https://github.com/gwirn/golaf/actions/workflows/go.yml/badge.svg)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](/LICENSE.md)
 <a title="Code Size" target="_blank" href="https://github.com/gwirn/golaf"><img src="https://img.shields.io/github/languages/code-size/gwirn/golaf"></a>
 
 

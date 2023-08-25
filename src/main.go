@@ -172,7 +172,7 @@ Compare the search results an print them in colors depending on what was found
 	*	qualityCutOff: percentage of word needs to be found to count as a match
 	:return
 */
-func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color string, qualityCutOff float32) {
+func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color string, qualityCutOff float32) string {
 	cMap := getColorMap()
 	_, ok := cMap[color]
 	if !ok {
@@ -216,8 +216,9 @@ func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color str
 			lastPrintInd = i[1]
 		}
 		sb.WriteString(searchString[lastPrintInd:])
-		fmt.Println(sb.String())
+		return sb.String()
 	}
+	return ""
 }
 
 /*
@@ -260,13 +261,19 @@ func argparse() {
 	// read from stdin
 	if len(files) == 0 {
 		buf := bufio.NewScanner(os.Stdin)
+		lineCount := 0
 		for buf.Scan() {
 			line := buf.Text()
 			fm, mI, mJ := fMatrix(searchPattern, line, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
 			ag1, ag2 := backtrace(fm, []rune(searchPattern), []rune(line), []rune{}, []rune{}, mI, mJ, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
 			reverseRune(ag1)
 			reverseRune(ag2)
-			showSearch(searchPattern, line, ag1, ag2, *colorPtr, float32(quality))
+
+			searchStringRes := showSearch(searchPattern, line, ag1, ag2, *colorPtr, float32(quality))
+			if len(searchStringRes) > 0 {
+				fmt.Printf("%d: %s\n", lineCount, searchStringRes)
+			}
+			lineCount++
 		}
 		// read from file(s)
 	} else {
@@ -282,6 +289,7 @@ func argparse() {
 			defer file.Close()
 
 			buf := bufio.NewScanner(file)
+			lineCount := 0
 			for {
 				if !buf.Scan() {
 					break
@@ -291,7 +299,11 @@ func argparse() {
 				ag1, ag2 := backtrace(fm, []rune(searchPattern), []rune(line), []rune{}, []rune{}, mI, mJ, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
 				reverseRune(ag1)
 				reverseRune(ag2)
-				showSearch(searchPattern, line, ag1, ag2, *colorPtr, float32(quality))
+				searchStringRes := showSearch(searchPattern, line, ag1, ag2, *colorPtr, float32(quality))
+				if len(searchStringRes) > 0 {
+					fmt.Printf("%d: %s\n", lineCount, searchStringRes)
+				}
+				lineCount++
 			}
 		}
 	}

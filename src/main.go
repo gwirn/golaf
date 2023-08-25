@@ -119,7 +119,7 @@ func fMatrix(str1, str2 string, gapP, mismatchP, match int) ([][]int, int, int) 
 }
 
 /*
-Trace back the path thorough the distance matrix recursively
+Trace back the path through the distance matrix recursively
 
 	:parameters
 	*	btDistMat: distance matrix to trace back the alignment
@@ -190,9 +190,23 @@ func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color str
 	quality := (lenMatch - (numIns - numGapRunePattern)) / (lenPattern - numGapRunePattern)
 
 	if quality >= qualityCutOff {
-		// search for aligned section in the search string
-		a2RePat := strings.ReplaceAll(string(inAlgn2), "-", "*-?")
-		m := regexp.MustCompile(a2RePat)
+		// search for aligned section in the search string and build regex pattern
+		var rePatBuilder strings.Builder
+		splitAlgn2 := strings.Split(string(inAlgn2), "-")
+		partsNum := len(splitAlgn2)
+		lastPartInd := partsNum-1
+		for i := 0; i < partsNum; i++ {
+			if len(splitAlgn2[i]) > 0 {
+				// to avoid trailing *-?
+				if i != lastPartInd {
+					rePatBuilder.WriteString(splitAlgn2[i])
+					rePatBuilder.WriteString("*-?")
+				} else {
+					rePatBuilder.WriteString(splitAlgn2[i])
+				}
+			}
+		}
+		m := regexp.MustCompile(rePatBuilder.String())
 		allInd := m.FindAllSubmatchIndex([]byte(searchString), -1)
 		// number of all matches
 		numInds := len(allInd)

@@ -42,16 +42,31 @@ else
     echo "PASS: Pattern matching for input from StdIn "
 fi
 
-if [[ ! $(go run main.go wold ../testFiles/* | grep world | wc -l) -eq 6 ]];then
-    echo "FAILED: Reduced 'world' -> 'wold'"
+if [[ ! $(go run main.go -quality 75 wold ../testFiles/* | grep world | wc -l) -eq 6 ]];then
+    echo "FAILED: Deletion 'world' -> 'wold'"
     exit 1
 else
-    echo "PASS: Reduced 'world' -> 'wold'"
+    echo "PASS: Deletion 'world' -> 'wold'"
 fi 
 
-if [[ ! $(go run main.go wod ../testFiles/* | grep world | wc -l) -eq 0 && ! $(go run main.go wod ../testFiles/* | wc -l) -eq 0 ]];then
-    echo "FAILED: Reduced 'world' -> 'wold'"
+if [[ ! $(go run main.go -quality 75 wod ../testFiles/* | grep ../testFiles/testFile | wc -l) -eq 2 ]];then
+    echo "FAILED: Deletion 'world' -> 'wod'"
     exit 1
 else
-    echo "PASS: Reduced 'world' -> 'wod'"
+    echo "PASS: Deletion 'world' -> 'wod'"
 fi
+
+if [[ ! $(go run main.go -quality 75 lixxne ../testFiles/testFile* | grep line | wc -l) -eq 6 ]];then
+    echo "FAILED: Insertion 'line' -> 'lixxne'"
+    exit 1
+else
+    echo "PASS: Insertion 'line' -> 'lixxne'"
+fi
+
+if [[ ! $(go run main.go -quality 75 lixxxne ../testFiles/* | grep ../testFiles/testFile | wc -l) -eq 2 ]];then
+    echo "FAILED: Insertion 'line' -> 'lixxxne'"
+    exit 1
+else
+    echo "PASS: Insertion 'line' -> 'lixxxne'"
+fi
+

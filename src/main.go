@@ -191,8 +191,15 @@ func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color str
 
 	if quality >= qualityCutOff {
 		// search for aligned section in the search string and build regex pattern
+		inAlgn2Str := string(inAlgn2)
+		specialRegex := []string{"\\", ".", "+", "*", "?", "^", "$", "(", ")", "[", "]", "{", "}", "|"}
+		for _, i := range specialRegex {
+			if strings.Contains(inAlgn2Str, i) {
+				inAlgn2Str = strings.ReplaceAll(inAlgn2Str, i, fmt.Sprintf("\\%s", i))
+			}
+		}
 		var rePatBuilder strings.Builder
-		splitAlgn2 := strings.Split(string(inAlgn2), "-")
+		splitAlgn2 := strings.Split(inAlgn2Str, "-")
 		partsNum := len(splitAlgn2)
 		lastPartInd := partsNum-1
 		for i := 0; i < partsNum; i++ {
@@ -336,6 +343,6 @@ func main() {
 		a1, a2 := backtrace(fm, []rune(pattern), []rune(target), []rune{}, []rune{}, mI, mJ, gapPenalty, -3, 3)
 		reverseRune(a1)
 		reverseRune(a2)
-		showSearch(pattern, target, a1, a2, "green", 0.6)
+		fmt.Println(showSearch(pattern, target, a1, a2, "green", 0.6))
 	*/
 }

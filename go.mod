@@ -1,3 +1,3 @@
-module github.com/gwirn/go-local-fuzz
+module github.com/gwirn/golaf
 
 go 1.20

@@ -20,8 +20,7 @@ From within the base directory of this repository run following commands
 ```
 git clone https://github.com/gwirn/golaf.git
 cd golaf/src
-go build
-mv src golaf
+go build -o golaf
 ```
 
 After running the commands above, on unix systems you can either do `mv golaf /usr/bin` or run `echo 'alias golaf="/PATH/TO/GOLAF"' >> ~/.bashrc` (or `~/.zshrc` depending on your shell) in order to make **GOLAF** easier accessible.

@@ -249,6 +249,10 @@ Parse command line arguments and execute search over files or stdin
 	:return
 */
 func argparse() {
+	flag.Usage = func() {
+		fmt.Printf("SYNOPSIS %s [-gapp] [-mmp] [-match] [-quality] [-color] [pattern] [file ...]\n", os.Args[0])
+		flag.PrintDefaults()
+	}
 	// optional arguments
 	// gap penalty
 	gapPenaltyPtr := flag.Int("gapp", -2, "gap penalty [NEGATIVE]")
@@ -267,9 +271,9 @@ func argparse() {
 	flag.Visit(func(f *flag.Flag) {
 		numFalgsPassed++
 	})
-	numArgs := len(os.Args)
-	if numArgs == 1 {
+	if len(flag.Args()) == 0 {
 		fmt.Fprintf(os.Stderr, "No arguments supplied\n")
+		flag.Usage()
 		os.Exit(1)
 	}
 

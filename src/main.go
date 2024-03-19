@@ -286,7 +286,7 @@ func argparse() {
 	// whether to color the output
 	colorPtr := flag.String("color", "green", "color option for highlighting the found results- options: [ red green yellow blue purple cyan white ]")
 	// to recursively search all files
-	recursiveSearchPtr := flag.String("recursive", ".", "recursively search through all files")
+	recursiveSearchPtr := flag.String("recursive", ".", "root directorx for recursively searching through all files")
 	// to include hidden files in search
 	recursiveHiddenPtr := flag.Bool("recH", false, "include hidden files in search")
 	flag.Parse()

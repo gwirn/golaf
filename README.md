@@ -17,7 +17,7 @@ Make sure go is [installed](https://go.dev/doc/install)
 
 From within the base directory of this repository run following commands
 
-```
+```sh
 git clone https://github.com/gwirn/golaf.git
 cd golaf/src
 go build -o golaf
@@ -33,15 +33,20 @@ The search can also be performed reading from StdIn with e.g. `cat [FILE | STDIN
 
 ### Possible optional argument
 
-```
+```go
+ SYNOPSIS /home/gwirn/.golaf/golaf/src/golaf [-gapp] [-mmp] [-match] [-quality] [-color] [pattern] [file ...]
   -color string
-    	color option for highlighting the found results- options: [ red green yellow blue purple cyan white ] (default "green")
+        color option for highlighting the found results- options: [ red green yellow blue purple cyan white ] (default "green")
   -gapp int
-    	gap penalty [NEGATIVE] (default -2)
+        gap penalty [NEGATIVE] (default -2)
   -match int
-    	score for a match [POSITIVE] (default 3)
+        score for a match [POSITIVE] (default 3)
   -mmp int
-    	missmatch penalty [NEGATIVE] (default -3)
+        missmatch penalty [NEGATIVE] (default -3)
   -quality int
-    	percentage of the pattern that have to macht to be seen as match (default 75)
+        percentage of the pattern that have to macht to be seen as match (default 75)
+  -recH
+        include hidden files in search
+  -recursive string
+        root directorx for recursively searching through all files (default ".")
 ```

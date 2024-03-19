@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -53,6 +52,26 @@ func isFlagPassed(name string) bool {
 		}
 	})
 	return found
+}
+
+/*
+Check if file is hidden (more than one '.' in the path)
+
+	:parameter
+	*	s: string to test
+	*	dot_max: max number of dots to be true
+	:return
+	*	dot_count: whether there were more than dot_max
+*/
+func isHidden(s *string, dotMax int) bool {
+	var testRune = '.'
+	dot_count := 0
+	for _, i := range *s {
+		if i == testRune {
+			dot_count++
+		}
+	}
+	return dot_count > dotMax
 }
 
 /*
@@ -321,10 +340,11 @@ func argparse() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			fileName := filepath.Base(fullPath)
+			fileName := path.Base(fpath)
+			dirName := path.Dir(fpath)
 			// only add path if it's a file
 			if fi.Mode().IsRegular() {
-				if !strings.HasPrefix(fileName, ".") {
+				if (!isHidden(&dirName, 0) || len(dirName) < 2) && !isHidden(&fileName, 1) {
 					files = append(files, fullPath)
 				} else if *recursiveHiddenPtr {
 					files = append(files, fullPath)

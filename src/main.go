@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -32,6 +35,24 @@ func getColorMap() map[string]string {
 	colorMap["cyan"] = "\033[36m"
 	colorMap["white"] = "\033[37m"
 	return colorMap
+}
+
+/*
+Check if flag was used
+
+	:parameter
+	*	name: name of the flag
+	:return
+	*	found: true if flag was supplied
+*/
+func isFlagPassed(name string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
 }
 
 /*
@@ -201,7 +222,7 @@ func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color *st
 		var rePatBuilder strings.Builder
 		splitAlgn2 := strings.Split(inAlgn2Str, "-")
 		partsNum := len(splitAlgn2)
-		lastPartInd := partsNum-1
+		lastPartInd := partsNum - 1
 		for i := 0; i < partsNum; i++ {
 			if len(splitAlgn2[i]) > 0 {
 				// to avoid trailing *-?
@@ -264,25 +285,54 @@ func argparse() {
 	qualityCutOffPtr := flag.Int("quality", 75, "percentage of the pattern that have to macht to be seen as match")
 	// whether to color the output
 	colorPtr := flag.String("color", "green", "color option for highlighting the found results- options: [ red green yellow blue purple cyan white ]")
+	// to recursively search all files
+	recursiveSearchPtr := flag.String("recursive", ".", "recursively search through all files")
+	// to include hidden files in search
+	recursiveHiddenPtr := flag.Bool("recH", false, "include hidden files in search")
 	flag.Parse()
 	quality := float32(*qualityCutOffPtr) / float32(100)
-	// number of optional args
-	numFalgsPassed := 0
-	flag.Visit(func(f *flag.Flag) {
-		numFalgsPassed++
-	})
-	if len(flag.Args()) == 0 {
+	numArgs := len(os.Args)
+	if numArgs == 1 {
 		fmt.Fprintf(os.Stderr, "No arguments supplied\n")
 		flag.Usage()
 		os.Exit(1)
 	}
+	notOptArgs := flag.Args()
+	recursiveSearch := isFlagPassed("recursive")
+	if len(notOptArgs) < 1 {
+		fmt.Fprintf(os.Stderr, "Not enough arguments supplied\n")
+		os.Exit(1)
+	}
 
-	// where positional args start
-	numArgSkip := (numFalgsPassed * 2) + 1
 	// the pattern to search for
-	searchPattern := os.Args[numArgSkip]
+	searchPattern := notOptArgs[0]
 	// the files in which the search should be performed
-	files := os.Args[numArgSkip+1:]
+	files := notOptArgs[1:]
+	// ignore files and add all files from this and all deeper directories to the search
+	if recursiveSearch {
+		fileSystem := os.DirFS(*recursiveSearchPtr)
+		fs.WalkDir(fileSystem, ".", func(fpath string, d fs.DirEntry, err error) error {
+			if err != nil {
+				log.Fatal(err)
+			}
+			// create full file path
+			fullPath := path.Join(*recursiveSearchPtr, fpath)
+			fi, err := os.Stat(fullPath)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fileName := filepath.Base(fullPath)
+			// only add path if it's a file
+			if fi.Mode().IsRegular() {
+				if !strings.HasPrefix(fileName, ".") {
+					files = append(files, fullPath)
+				} else if *recursiveHiddenPtr {
+					files = append(files, fullPath)
+				}
+			}
+			return nil
+		})
+	}
 	// read from stdin
 	if len(files) == 0 {
 		buf := bufio.NewScanner(os.Stdin)
@@ -333,6 +383,7 @@ func argparse() {
 		}
 	}
 }
+
 func main() {
 	argparse()
 	/*

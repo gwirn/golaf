@@ -14,14 +14,14 @@ else
     echo "PASS: Pattern matching with default settings and word 'world' "
 fi
 
-if [[ ! $(go run main.go -quality 0 "xyz" ../testFiles/* | wc -l) -eq 14 ]];then
+if [[ ! $(go run main.go -quality 0 "xyz" ../testFiles/* | wc -l) -eq 15 ]];then
     echo "FAILED: Pattern matching failed where it should match every line"
     exit 1
 else
     echo "PASS: Pattern matching with quality 0 "
 fi
 
-if [[ ! $(go run main.go -quality 100 "xyz" ../testFiles/* | wc -l) -eq 2 ]];then
+if [[ ! $(go run main.go -quality 100 "xyz" ../testFiles/* | wc -l) -eq 3 ]];then
     echo "FAILED: Pattern matching failed where it should match nothing and print only the file paths"
     exit 1
 else
@@ -70,3 +70,16 @@ else
     echo "PASS: Insertion 'line' -> 'lixxxne'"
 fi
 
+if [[ ! $(go run main.go -recursive=../testFiles hidden | grep testFile | wc -l) -eq 3 ]];then
+    echo "FAILED: Only recursevly searching in not hidden files"
+    exit 1
+else
+    echo "PASS: Only recursevly searching in not hidden files"
+fi
+
+if [[ ! $(go run main.go -recursive=../testFiles -recH hidden | grep hidden | wc -l) -eq 2 ]];then
+    echo "FAILED: Recursevly searching also in hidden files"
+    exit 1
+else
+    echo "PASS: Recursevly searching also in hidden files"
+fi

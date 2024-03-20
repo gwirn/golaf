@@ -9,6 +9,28 @@ const gapPenalty = -2
 const mismatchPenalty = -3
 const matchScore = 3
 
+func TestIsHidden(t *testing.T) {
+	oneDot := "one.dot"
+	twoDot := ".two.dot"
+	if isHidden(&oneDot, 1) {
+		t.Fatalf("Failed when single dot should be accepted")
+	}
+	if isHidden(&twoDot, 2) {
+		t.Fatalf("Failed when double dot should be accepted")
+	}
+}
+
+func TestIsBinarx(t *testing.T) {
+	binPath := "../testFiles/binfile"
+	notBinPath := "../testFiles/testFile1.txt"
+	if !*isBinary(&binPath) {
+		t.Fatal("Failed indentifying a binary file")
+	}
+	if *isBinary(&notBinPath) {
+		t.Fatal("Failed to identify non binary file")
+	}
+}
+
 func TestCMap(t *testing.T) {
 	keys := []string{"reset", "bold", "underline", "strike", "italic", "red", "green", "yellow", "blue", "purple", "cyan", "white"}
 	cMap := getColorMap()

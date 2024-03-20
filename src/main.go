@@ -13,82 +13,6 @@ import (
 )
 
 /*
-Get the color codes for terminal output
-
-	:parameter
-	:return
-	*	colorMap: map that returns the terminal escape sequences to color strings
-*/
-func getColorMap() map[string]string {
-	colorMap := make(map[string]string)
-	colorMap["reset"] = "\033[0m"
-	colorMap["bold"] = "\033[1m"
-	colorMap["underline"] = "\033[4m"
-	colorMap["strike"] = "\033[9m"
-	colorMap["italic"] = "\033[3m"
-	colorMap["red"] = "\033[31m"
-	colorMap["green"] = "\033[32m"
-	colorMap["yellow"] = "\033[33m"
-	colorMap["blue"] = "\033[34m"
-	colorMap["purple"] = "\033[35m"
-	colorMap["cyan"] = "\033[36m"
-	colorMap["white"] = "\033[37m"
-	return colorMap
-}
-
-/*
-Check if flag was used
-
-	:parameter
-	*	name: name of the flag
-	:return
-	*	found: true if flag was supplied
-*/
-func isFlagPassed(name string) bool {
-	found := false
-	flag.Visit(func(f *flag.Flag) {
-		if f.Name == name {
-			found = true
-		}
-	})
-	return found
-}
-
-/*
-Check if file is hidden (more than one '.' in the path)
-
-	:parameter
-	*	s: string to test
-	*	dot_max: max number of dots to be true
-	:return
-	*	dot_count: whether there were more than dot_max
-*/
-func isHidden(s *string, dotMax int) bool {
-	var testRune = '.'
-	dot_count := 0
-	for _, i := range *s {
-		if i == testRune {
-			dot_count++
-		}
-	}
-	return dot_count > dotMax
-}
-
-/*
-Reverse a slice containing runes in place
-
-	:parameter
-	*	inSlice: slice that should be reversed
-	:return
-*/
-func reverseRune(inSlice []rune) {
-	n := len(inSlice)
-	for i := 0; i < n/2; i++ {
-		inSlice[i], inSlice[n-1-i] = inSlice[n-1-i], inSlice[i]
-	}
-}
-
-/*
 Calculate the levenshtein distance matrix
 
 	:parameter
@@ -327,17 +251,20 @@ func argparse() {
 	// gap penalty
 	gapPenaltyPtr := flag.Int("gapp", -2, "gap penalty [NEGATIVE]")
 	// mismatch penalty
-	mmPenaltyPtr := flag.Int("mmp", -3, "missmatch penalty [NEGATIVE]")
+	mmPenaltyPtr := flag.Int("mmp", -3, "mismatch penalty [NEGATIVE]")
 	// match bonus
 	matchBonusPtr := flag.Int("match", 3, "score for a match [POSITIVE]")
 	// minimum required quality to count as a match
-	qualityCutOffPtr := flag.Int("quality", 75, "percentage of the pattern that have to macht to be seen as match")
+	qualityCutOffPtr := flag.Int("quality", 75, "percentage of the pattern that have to match to be seen as match")
 	// whether to color the output
 	colorPtr := flag.String("color", "green", "color option for highlighting the found results- options: [ red green yellow blue purple cyan white ]")
 	// to recursively search all files
-	recursiveSearchPtr := flag.String("recursive", ".", "root directorx for recursively searching through all files")
+	recursiveSearchPtr := flag.String("recursive", ".", "root directory for recursively searching through all files")
 	// to include hidden files in search
-	recursiveHiddenPtr := flag.Bool("recH", false, "include hidden files in search")
+	recursiveHiddenPtr := flag.Bool("recH", false, "include hidden files in the search")
+	// to include binary files in search
+	addBinarySearchPtr := flag.Bool("binary", false, "include binary files in the search")
+	// which search should be performed
 	searchTypePtr := flag.String("type", "c", "Search type\nc - search in file content\nn - search for files and directories")
 
 	flag.Parse()
@@ -361,6 +288,8 @@ func argparse() {
 	files := notOptArgs[1:]
 	// ignore files and add all files from this and all deeper directories to the search
 	if recursiveSearch {
+		// empty slice if it is still supplied
+		files = nil
 		fileSystem := os.DirFS(*recursiveSearchPtr)
 		fs.WalkDir(fileSystem, ".", func(fpath string, d fs.DirEntry, err error) error {
 			if err != nil {
@@ -376,14 +305,29 @@ func argparse() {
 			dirName := path.Dir(fpath)
 			// only add path if it's a file
 			if fi.Mode().IsRegular() {
-				if (!isHidden(&dirName, 0) || len(dirName) < 2) && !isHidden(&fileName, 1) {
-					files = append(files, fullPath)
-				} else if *recursiveHiddenPtr {
-					files = append(files, fullPath)
+				nextTest := true
+				if !*addBinarySearchPtr {
+					nextTest = !*isBinary(&fullPath)
+				}
+				if nextTest {
+					if (!isHidden(&dirName, 0) || len(dirName) < 2) && !isHidden(&fileName, 1) {
+						files = append(files, fullPath)
+					} else if *recursiveHiddenPtr {
+						files = append(files, fullPath)
+					}
 				}
 			}
 			return nil
 		})
+	} else if !*addBinarySearchPtr {
+		i := 0
+		for _, x := range files {
+			if !*isBinary(&x) {
+				files[i] = x
+				i++
+			}
+		}
+		files = files[:i]
 	}
 
 	switch {
@@ -427,7 +371,7 @@ func argparse() {
 			}
 		}
 	default:
-		fmt.Fprintf(os.Stderr, "Invalide search type argument %s\n", *searchTypePtr)
+		fmt.Fprintf(os.Stderr, "Invalid search type argument %s\n", *searchTypePtr)
 		os.Exit(1)
 	}
 }

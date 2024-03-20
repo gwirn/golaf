@@ -283,6 +283,36 @@ func showSearch(pattern, searchString string, inAlgn1, inAlgn2 []rune, color *st
 }
 
 /*
+Perform search on string
+
+	:parameter
+	*	sSearchPattern: the pattern to search for
+	*	sLine: the string to seach in
+	*	sGapPenaltyPtr: gap penalty
+	*	sMmPenaltyPtr: missmatch penalty
+	*	sMatchBonusPtr: score for a match
+	*	sColorPtr: color option for seach highlight
+	*	sQuality: minimum required quality to count as a match in percent
+	*	sLineCount: to print line of the match
+	*	sPrintLineCount: whether to print the line count
+	:return
+*/
+func search(sSearchPattern, sLine string, sGapPenaltyPtr, sMmPenaltyPtr, sMatchBonusPtr *int, sColorPtr *string, sQuality *float32, sLineCount *int, sPrintLineCount bool) {
+	fm, mI, mJ := fMatrix(sSearchPattern, sLine, *sGapPenaltyPtr, *sMmPenaltyPtr, *sMatchBonusPtr)
+	ag1, ag2 := backtrace(fm, []rune(sSearchPattern), []rune(sLine), []rune{}, []rune{}, mI, mJ, *sGapPenaltyPtr, *sMmPenaltyPtr, *sMatchBonusPtr)
+	reverseRune(ag1)
+	reverseRune(ag2)
+	searchStringRes := showSearch(sSearchPattern, sLine, ag1, ag2, sColorPtr, *sQuality)
+	if len(searchStringRes) > 0 {
+		if sPrintLineCount {
+			fmt.Printf("%d: %s\n", *sLineCount, searchStringRes)
+		} else {
+			fmt.Printf("%s\n", searchStringRes)
+		}
+	}
+}
+
+/*
 Parse command line arguments and execute search over files or stdin
 
 	:parameters
@@ -290,7 +320,7 @@ Parse command line arguments and execute search over files or stdin
 */
 func argparse() {
 	flag.Usage = func() {
-		fmt.Printf("SYNOPSIS %s [-gapp] [-mmp] [-match] [-quality] [-color] [pattern] [file ...]\n", os.Args[0])
+		fmt.Printf("SYNOPSIS %s [-gapp] [-mmp] [-match] [-quality] [-color] [-recursive] [-recH] [-type] [pattern] [file ...]\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	// optional arguments
@@ -308,6 +338,8 @@ func argparse() {
 	recursiveSearchPtr := flag.String("recursive", ".", "root directorx for recursively searching through all files")
 	// to include hidden files in search
 	recursiveHiddenPtr := flag.Bool("recH", false, "include hidden files in search")
+	searchTypePtr := flag.String("type", "c", "Search type\nc - search in file content\nn - search for files and directories")
+
 	flag.Parse()
 	quality := float32(*qualityCutOffPtr) / float32(100)
 	numArgs := len(os.Args)
@@ -353,71 +385,53 @@ func argparse() {
 			return nil
 		})
 	}
-	// read from stdin
-	if len(files) == 0 {
-		buf := bufio.NewScanner(os.Stdin)
-		lineCount := 0
-		for buf.Scan() {
-			line := buf.Text()
-			fm, mI, mJ := fMatrix(searchPattern, line, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
-			ag1, ag2 := backtrace(fm, []rune(searchPattern), []rune(line), []rune{}, []rune{}, mI, mJ, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
-			reverseRune(ag1)
-			reverseRune(ag2)
 
-			searchStringRes := showSearch(searchPattern, line, ag1, ag2, colorPtr, quality)
-			if len(searchStringRes) > 0 {
-				fmt.Printf("%d: %s\n", lineCount, searchStringRes)
-			}
-			lineCount++
+	switch {
+	case *searchTypePtr == "n":
+		for lineCount, pathNames := range files {
+			search(searchPattern, pathNames, gapPenaltyPtr, mmPenaltyPtr, matchBonusPtr, colorPtr, &quality, &lineCount, false)
 		}
-		// read from file(s)
-	} else {
-		// colormap for terminal output
-		cMap := getColorMap()
-		for _, filepath := range files {
-			fmt.Printf("%s%s%s%s%s\n", cMap["bold"], cMap["italic"], cMap["red"], filepath, cMap["reset"])
-			file, err := os.Open(filepath)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Can't open file %s\n", filepath)
-				os.Exit(1)
-			}
-			defer file.Close()
-
-			buf := bufio.NewScanner(file)
+	case *searchTypePtr == "c":
+		// read from stdin
+		if len(files) == 0 {
+			buf := bufio.NewScanner(os.Stdin)
 			lineCount := 0
-			for {
-				if !buf.Scan() {
-					break
-				}
+			for buf.Scan() {
 				line := buf.Text()
-				fm, mI, mJ := fMatrix(searchPattern, line, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
-				ag1, ag2 := backtrace(fm, []rune(searchPattern), []rune(line), []rune{}, []rune{}, mI, mJ, *gapPenaltyPtr, *mmPenaltyPtr, *matchBonusPtr)
-				reverseRune(ag1)
-				reverseRune(ag2)
-				searchStringRes := showSearch(searchPattern, line, ag1, ag2, colorPtr, quality)
-				if len(searchStringRes) > 0 {
-					fmt.Printf("%d: %s\n", lineCount, searchStringRes)
-				}
+				search(searchPattern, line, gapPenaltyPtr, mmPenaltyPtr, matchBonusPtr, colorPtr, &quality, &lineCount, true)
 				lineCount++
 			}
+			// read from file(s)
+		} else {
+			// colormap for terminal output
+			cMap := getColorMap()
+			for _, filepath := range files {
+				fmt.Printf("%s%s%s%s%s\n", cMap["bold"], cMap["italic"], cMap["red"], filepath, cMap["reset"])
+				file, err := os.Open(filepath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Can't open file %s\n", filepath)
+					os.Exit(1)
+				}
+				defer file.Close()
+
+				buf := bufio.NewScanner(file)
+				lineCount := 0
+				for {
+					if !buf.Scan() {
+						break
+					}
+					line := buf.Text()
+					search(searchPattern, line, gapPenaltyPtr, mmPenaltyPtr, matchBonusPtr, colorPtr, &quality, &lineCount, true)
+					lineCount++
+				}
+			}
 		}
+	default:
+		fmt.Fprintf(os.Stderr, "Invalide search type argument %s\n", *searchTypePtr)
+		os.Exit(1)
 	}
 }
 
 func main() {
 	argparse()
-	/*
-		// the pattern to search for
-		pattern := "pakcage"
-		// where to search
-		target := "xxxpackage-main blabla package"
-		// target = "TGTTACGG"
-		// pattern = "GGTTGACTA"
-		gapPenalty := -2
-		fm, mI, mJ := fMatrix(pattern, target, gapPenalty, -3, 3)
-		a1, a2 := backtrace(fm, []rune(pattern), []rune(target), []rune{}, []rune{}, mI, mJ, gapPenalty, -3, 3)
-		reverseRune(a1)
-		reverseRune(a2)
-		fmt.Println(showSearch(pattern, target, a1, a2, "green", 0.6))
-	*/
 }

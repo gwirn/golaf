@@ -34,7 +34,9 @@ The search can also be performed reading from StdIn with e.g. `cat [FILE | STDIN
 ### Possible optional argument
 
 ```go
- SYNOPSIS /home/gwirn/.golaf/golaf/src/golaf [-gapp] [-mmp] [-match] [-quality] [-color] [pattern] [file ...]
+SYNOPSIS golaf [-bin] [-color] [-gapp] [-match] [-mmp] [-quality] [-recH] [-recursive] [-type] [pattern] [file ...]
+  -bin
+        include binary files in the search
   -color string
         color option for highlighting the found results- options: [ red green yellow blue purple cyan white ] (default "green")
   -gapp int
@@ -42,11 +44,15 @@ The search can also be performed reading from StdIn with e.g. `cat [FILE | STDIN
   -match int
         score for a match [POSITIVE] (default 3)
   -mmp int
-        missmatch penalty [NEGATIVE] (default -3)
+        mismatch penalty [NEGATIVE] (default -3)
   -quality int
-        percentage of the pattern that have to macht to be seen as match (default 75)
+        percentage of the pattern that have to match to be seen as match (default 75)
   -recH
-        include hidden files in search
+        include hidden files in the search
   -recursive string
-        root directorx for recursively searching through all files (default ".")
+        root directory for recursively searching through all files (default ".")
+  -type string
+        Search type
+        c - search in file content
+        n - search for files and directories (default "c")
 ```

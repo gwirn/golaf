@@ -244,7 +244,7 @@ Parse command line arguments and execute search over files or stdin
 */
 func argparse() {
 	flag.Usage = func() {
-		fmt.Printf("SYNOPSIS %s [-gapp] [-mmp] [-match] [-quality] [-color] [-recursive] [-recH] [-type] [pattern] [file ...]\n", os.Args[0])
+		fmt.Printf("SYNOPSIS %s [-bin] [-color] [-gapp] [-match] [-mmp] [-quality] [-recH] [-recursive] [-type] [pattern] [file ...]\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	// optional arguments
@@ -263,7 +263,7 @@ func argparse() {
 	// to include hidden files in search
 	recursiveHiddenPtr := flag.Bool("recH", false, "include hidden files in the search")
 	// to include binary files in search
-	addBinarySearchPtr := flag.Bool("binary", false, "include binary files in the search")
+	addBinarySearchPtr := flag.Bool("bin", false, "include binary files in the search")
 	// which search should be performed
 	searchTypePtr := flag.String("type", "c", "Search type\nc - search in file content\nn - search for files and directories")
 

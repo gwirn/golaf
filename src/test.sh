@@ -112,7 +112,7 @@ else
     echo "PASS: Recursive file name search excluding binary files"
 fi
 
-if [[ ! $(../testFiles/binfile -recursive="../testFiles" -type="n" -binary file | grep bin | wc -l) -eq 1 ]];then
+if [[ ! $(../testFiles/binfile -recursive="../testFiles" -type="n" -bin file | grep bin | wc -l) -eq 1 ]];then
     echo "FAILED: Recursive file name search including binary files"
     exit 1
 else

@@ -31,7 +31,7 @@ jobs:
 
     - name: Go Tests
       shell: bash
-      run: ll ..; cd src; go test -v
+      run: ls ..; cd src; go test -v
     - name: CLI test
       shell: bash
       run: cd src; bash test.sh

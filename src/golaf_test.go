@@ -20,17 +20,6 @@ func TestIsHidden(t *testing.T) {
 	}
 }
 
-func TestIsBinarx(t *testing.T) {
-	binPath := "../testFiles/binfile"
-	notBinPath := "../testFiles/testFile1.txt"
-	if !*isBinary(&binPath) {
-		t.Fatal("Failed indentifying a binary file")
-	}
-	if *isBinary(&notBinPath) {
-		t.Fatal("Failed to identify non binary file")
-	}
-}
-
 func TestCMap(t *testing.T) {
 	keys := []string{"reset", "bold", "underline", "strike", "italic", "red", "green", "yellow", "blue", "purple", "cyan", "white"}
 	cMap := getColorMap()

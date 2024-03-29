@@ -27,9 +27,13 @@ After running the commands above, on unix systems you can either do `mv golaf /u
 
 ## Usage
 
-Basic search can be done with `golaf [PATTERN] [FILE | STDIN]`
+Basic search can be done with `golaf [PATTERN] [FILE | STDIN]` to search in files or in stdin.
 
 The search can also be performed reading from StdIn with e.g. `cat [FILE | STDIN] | golaf [PATTERN]`
+
+In order to fuzzy find files or directories by their name but not their content `-type` has to be set to `n`.
+
+To search trough all directories starting in a given directory use the `-recursive` argument (this can be used for file content and for file/directory search).
 
 ### Possible optional argument
 
